@@ -1,0 +1,700 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Iceman QB Cards</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Layout: a single phone-first column styled like a QB wristband card; filters on top, the card in the middle with a field diagram, answer buttons in the thumb zone. */
+:root {
+  --bg: #ECEFE6;
+  --surface: #FBFCF7;
+  --ink: #16241A;
+  --muted: #586A5C;
+  --line: #CBD3C4;
+  --field: #1E5A33;
+  --field-ink: #F4F8F1;
+  --flag: #F2C230;
+  --flag-ink: #241D00;
+  --miss: #A83A2C;
+  --got: #1E7444;
+  --chip: #E2E7DA;
+  --turf: #DCE6D2;
+  --yard: #B5C4AC;
+  --route: #16241A;
+  --def: #A3302A;
+  --zone: #2F6DA8;
+  --display: "Barlow Condensed", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D1811; --surface: #14241A; --ink: #E8EFE5; --muted: #98AD9C; --line: #2A3E30;
+    --field: #3B9E60; --field-ink: #06120A; --flag: #F2C94C; --flag-ink: #241D00;
+    --miss: #E46F5D; --got: #4CC27D; --chip: #1B2F22;
+    --turf: #10261A; --yard: #2B4A35; --route: #E8EFE5; --def: #F08A78; --zone: #6FA8E0; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D1811; --surface: #14241A; --ink: #E8EFE5; --muted: #98AD9C; --line: #2A3E30;
+  --field: #3B9E60; --field-ink: #06120A; --flag: #F2C94C; --flag-ink: #241D00;
+  --miss: #E46F5D; --got: #4CC27D; --chip: #1B2F22;
+  --turf: #10261A; --yard: #2B4A35; --route: #E8EFE5; --def: #F08A78; --zone: #6FA8E0; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 16px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 560px; margin: 0 auto; padding-block: 20px 32px; display: flex; flex-direction: column; gap: 18px; }
+header h1 { font-family: var(--display); font-weight: 800; font-size: 2.1rem; line-height: 1; letter-spacing: 0.01em; margin: 0; text-transform: uppercase; text-wrap: balance; }
+header p { margin: 6px 0 0; color: var(--muted); font-size: 0.95rem; }
+.filters { display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; flex-wrap: wrap; gap: 8px; }
+.label { font-family: var(--display); font-weight: 700; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.chip {
+  font: inherit; font-size: 0.92rem; border: 1px solid var(--line); background: var(--chip); color: var(--ink);
+  border-radius: 999px; padding: 7px 13px; cursor: pointer; min-height: 38px;
+}
+.chip[aria-pressed="true"] { background: var(--field); border-color: var(--field); color: var(--field-ink); }
+.chip.flagchip[aria-pressed="true"] { background: var(--flag); border-color: var(--flag); color: var(--flag-ink); }
+.chip .n { opacity: 0.7; font-variant-numeric: tabular-nums; margin-left: 4px; }
+.chip:focus-visible, .btn:focus-visible, .card:focus-visible { outline: 3px solid var(--flag); outline-offset: 2px; }
+
+.meter { display: flex; align-items: center; gap: 10px; }
+.meter .track { flex: 1; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.meter .done { height: 100%; background: var(--field); width: 0; transition: width 0.25s; }
+.meter .count { font-family: var(--display); font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; min-width: 4.5ch; text-align: right; }
+
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+  display: flex; flex-direction: column; min-height: 300px; cursor: pointer;
+}
+.strip {
+  display: flex; align-items: center; gap: 10px; padding: 9px 14px; background: var(--field); color: var(--field-ink);
+  font-family: var(--display); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; font-size: 0.95rem;
+  background-image: repeating-linear-gradient(90deg, transparent 0 22px, rgba(255,255,255,0.13) 22px 24px);
+}
+.strip .id { background: var(--flag); color: var(--flag-ink); border-radius: 4px; padding: 1px 7px; font-variant-numeric: tabular-nums; }
+.strip .deck { flex: 1; min-width: 0; }
+.dots { display: inline-flex; gap: 4px; }
+.dots i { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid currentColor; display: block; }
+.dots i.on { background: currentColor; }
+.timer { height: 5px; background: var(--line); }
+.timer .fill { height: 100%; width: 100%; background: var(--flag); transform-origin: left; }
+.timer.run .fill { animation: drain 3s linear forwards; }
+.timer.out .fill { background: var(--miss); }
+@keyframes drain { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+.face { padding: 18px 18px 18px; display: flex; flex-direction: column; gap: 14px; flex: 1; }
+.front { font-family: var(--display); font-weight: 700; font-size: clamp(1.55rem, 6vw, 2.05rem); line-height: 1.12; margin: 0; text-wrap: balance; }
+.hint { color: var(--muted); font-size: 0.9rem; margin-top: auto; }
+.back { border-top: 2px dashed var(--line); padding-top: 14px; display: flex; flex-direction: column; gap: 12px; }
+.answer { font-size: 1.18rem; font-weight: 700; margin: 0; }
+.links { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font-size: 0.8rem; border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; color: var(--muted); }
+.read { background: var(--chip); border-radius: 10px; padding: 10px 12px; font-size: 0.95rem; }
+.read b { font-family: var(--display); letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.85rem; color: var(--muted); display: block; margin-bottom: 4px; }
+.read ol { margin: 4px 0 0; padding-left: 1.3em; }
+.stat { font-size: 0.82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+.diagram { display: flex; flex-direction: column; gap: 6px; }
+.dg { width: 100%; height: auto; display: block; border-radius: 10px; background: var(--turf); }
+.dg .yl { stroke: var(--yard); stroke-width: 0.25; }
+.dg .hash { stroke: var(--yard); stroke-width: 0.35; }
+.dg .los { stroke: var(--flag); stroke-width: 0.55; }
+.dg .ol { fill: var(--muted); }
+.dg .rc { fill: var(--surface); stroke: var(--ink); stroke-width: 0.45; }
+.dg .rt { fill: var(--ink); font: 700 2.3px var(--body); text-anchor: middle; dominant-baseline: central; }
+.dg .route { fill: none; stroke: var(--route); stroke-width: 0.6; stroke-linejoin: round; stroke-linecap: round; }
+.dg .ah { fill: var(--route); }
+.dg .ahd { fill: var(--def); }
+.dg .zone { fill: var(--zone); fill-opacity: 0.17; stroke: var(--zone); stroke-opacity: 0.55; stroke-width: 0.3; }
+.dg .zone.deep { fill-opacity: 0.09; }
+.dg .def { fill: var(--def); font: 800 3.1px var(--display); text-anchor: middle; dominant-baseline: central; }
+.dg .keyring { fill: none; stroke: var(--flag); stroke-width: 0.75; }
+.dg .man { stroke: var(--def); stroke-width: 0.35; stroke-dasharray: 1 0.8; }
+.dg .blitz { stroke: var(--def); stroke-width: 0.5; }
+.dg .move { stroke: var(--def); stroke-width: 0.4; stroke-dasharray: 1.2 0.8; fill: none; }
+.dg .ghost { fill: var(--def); fill-opacity: 0.32; font: 800 3.1px var(--display); text-anchor: middle; dominant-baseline: central; }
+.dg .num { fill: var(--flag); stroke: var(--ink); stroke-width: 0.25; }
+.dg .numt { fill: var(--flag-ink); font: 800 2.4px var(--display); text-anchor: middle; dominant-baseline: central; }
+.dg .note { fill: var(--muted); font: 700 2.2px var(--display); letter-spacing: 0.08px; }
+.legend { font-size: 0.75rem; color: var(--muted); }
+
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.btn {
+  font: inherit; font-weight: 700; font-size: 1.05rem; min-height: 54px; border-radius: 12px; cursor: pointer;
+  border: 2px solid transparent; padding: 10px 14px;
+}
+.btn.full { grid-column: 1 / -1; }
+.btn.primary { background: var(--field); color: var(--field-ink); }
+.btn.miss { background: transparent; border-color: var(--miss); color: var(--miss); }
+.btn.got { background: var(--got); color: var(--field-ink); }
+.btn.ghost { background: transparent; border-color: var(--line); color: var(--ink); }
+
+.summary { display: flex; flex-direction: column; gap: 14px; }
+.score { font-family: var(--display); font-weight: 800; font-size: 3.2rem; line-height: 1; font-variant-numeric: tabular-nums; margin: 0; }
+.summary h2 { font-family: var(--display); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-size: 1.1rem; margin: 0; }
+.missed { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.missed li { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.missed .q { font-weight: 700; }
+.missed .a { color: var(--muted); font-size: 0.95rem; }
+textarea {
+  font: inherit; width: 100%; min-height: 84px; border-radius: 10px; border: 1px solid var(--line);
+  background: var(--surface); color: var(--ink); padding: 10px 12px; resize: vertical;
+}
+.empty { color: var(--muted); text-align: center; padding: 30px 10px; }
+footer { color: var(--muted); font-size: 0.82rem; }
+@media (prefers-reduced-motion: reduce) { .meter .done { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Iceman QB Cards</h1>
+    <p>Count the safeties. Read the defender. Make the throw.</p>
+  </header>
+
+  <section class="filters" aria-label="Choose cards">
+    <div class="label" id="deckLabelHead">Deck</div>
+    <div class="row" id="decks" role="group" aria-labelledby="deckLabelHead"></div>
+    <div class="label" id="levelLabelHead">Level</div>
+    <div class="row" id="levels" role="group" aria-labelledby="levelLabelHead"></div>
+    <div class="row">
+      <button class="chip flagchip" id="rapid" aria-pressed="false" type="button">Rapid fire: 3 seconds</button>
+      <button class="chip" id="restart" type="button">Shuffle and restart</button>
+    </div>
+  </section>
+
+  <section id="session" class="session" aria-live="polite">
+    <div class="meter"><div class="track"><div class="done" id="done"></div></div><div class="count" id="count">0/0</div></div>
+  </section>
+
+  <article class="card" id="card" tabindex="0" aria-label="Flashcard. Tap to show the answer.">
+    <div class="strip"><span class="id" id="cardId">F01</span><span class="deck" id="cardDeck">Basics</span><span class="dots" id="cardDots" aria-label=""></span></div>
+    <div class="timer" id="timer" hidden><div class="fill"></div></div>
+    <div class="face">
+      <div class="diagram" id="diagram" hidden></div>
+      <p class="front" id="front"></p>
+      <div class="back" id="back" hidden>
+        <p class="answer" id="answer"></p>
+        <div id="read"></div>
+        <div class="links" id="links"></div>
+      </div>
+      <div class="hint" id="hint">Say your answer out loud, then tap the card.</div>
+      <div class="stat" id="stat"></div>
+    </div>
+  </article>
+
+  <div class="actions" id="actions"></div>
+
+  <section class="summary" id="summary" hidden></section>
+  <div class="empty" id="empty" hidden>No cards match. Pick at least one deck and one level.</div>
+
+  <footer>Built from the Football folder: concepts, coverages, matchup matrix and progressions. His coach's reads come first.</footer>
+</div>
+
+<script>
+const CARDS = [
+["F01","Basics",1,"What is the first thing a QB checks before the snap?","Count the safeties. One deep (1-high) or two deep (2-high)?",""],
+["F02","Basics",1,"One safety deep in the middle usually means which coverages?","Cover 1 (man) or Cover 3 (zone).","D02, D05"],
+["F03","Basics",1,"Two safeties deep usually means which coverages?","Cover 2, Tampa 2, Cover 4, or Cover 6.","D03, D04, D06, D07"],
+["F04","Basics",1,"No safety deep at all means what?","Cover 0: all-out man and a blitz is coming. Get the ball out fast.","D01"],
+["F05","Basics",1,"How can motion tell you man or zone?","If a defender runs across the field with the motion receiver, it's likely man. If defenders just shift over, it's likely zone.","D02, D05"],
+["F06","Basics",2,"What does high-low mean?","Two receivers at different depths in one defender's area. Whichever one he covers, throw the other.",""],
+["F07","Basics",2,"What does a horizontal stretch mean?","Two receivers side by side across one defender's area. He can't cover both widths.",""],
+["F08","Coverages",1,"Cover 3: how many deep defenders and who are they?","Three: both corners and the free safety, each with a deep third.","D05"],
+["F09","Coverages",1,"Cover 2: where is the weak spot?","The sideline hole between the squatting corner and the safety, about 15-20 yards deep. Also the deep middle between the safeties.","D03"],
+["F10","Coverages",2,"How do you tell Tampa 2 from Cover 2?","You often can't before the snap. After the snap, the Mike linebacker runs straight back to the deep middle.","D04"],
+["F11","Coverages",2,"Cover 4 (Quarters): what are the safeties doing?","Playing a deep quarter each, but reading the inside receiver and jumping short routes. That's how you beat them with the post-dig.","D06, C12"],
+["F12","Coverages",1,"Cover 1: what are its weak spots?","Crossing routes, rubs, and deep throws outside away from the single safety.","D02"],
+["F13","Coverages",3,"Cover 6: what is it?","Quarters on one side and Cover 2 on the other. Attack the Cover 2 side's sideline hole.","D07"],
+["F14","Concepts",1,"Smash: what are the two routes?","Outside: hitch at 5-6 yards. Inside: corner route at 10-12 yards.","C01"],
+["F15","Concepts",1,"Smash: who does the QB read?","The cornerback. If he sits on the hitch, throw the corner. If he runs with the corner, throw the hitch.","C01"],
+["F16","Concepts",1,"Slant-Flat: who does the QB read?","The flat defender. If he widens with the flat, throw the slant. If he stays inside, throw the flat.","C05"],
+["F17","Concepts",2,"Flood: what are the three levels?","A go route deep, a sail (deep out) at 12-15 yards, and a flat route underneath.","C02"],
+["F18","Concepts",2,"Mesh: vs man what do the crossers do? Vs zone?","Vs man, keep running away from the defender. Vs zone, find the hole and sit.","C04"],
+["F19","Concepts",2,"Stick: what does the stick route do vs zone? Vs man?","Vs zone it sits in the hole at 5-6 yards. Vs man it turns outside.","C07"],
+["F20","Concepts",2,"Snag: what three routes make the triangle?","Snag (sits at 5-6 yards), corner route, and a flat.","C08"],
+["F21","Concepts",2,"Dagger: what does the seam do?","Clears the middle and pulls the safety and linebackers, so the dig comes open behind them.","C09"],
+["F22","Concepts",2,"Drive (Levels): who does the QB read?","The hook linebacker. If he jumps the shallow, throw the dig. If he drops, throw the shallow.","C10"],
+["F23","Concepts",3,"Y-Cross: why is it good off play-action?","Play-action pulls linebackers up, opening the 15-18 yard window for the deep crosser.","C11"],
+["F24","Concepts",3,"Mills (post-dig): who does the QB read?","The safety on that side. If he jumps the dig, throw the post. If he stays deep, throw the dig.","C12"],
+["F25","Matchups",1,"Best concept vs Cover 2?","Smash. The corner route attacks the hole behind the squatting corner.","C01, D03"],
+["F26","Matchups",1,"Why does Four Verticals beat Cover 3?","Four deep receivers against only three deep defenders.","C03, D05"],
+["F27","Matchups",1,"Best answer to Cover 0 (all-out blitz)?","Quick throws: slant-flat, mesh, or the hot route. Get the ball out before the rush.","C05, C04, D01"],
+["F28","Matchups",2,"Best concepts vs Cover 1 man?","Mesh, drive, and Y-cross: crossers and rubs that run away from man defenders.","C04, C10, C11, D02"],
+["F29","Matchups",2,"Why does Four Verticals struggle vs Cover 4?","Four deep defenders can match four deep routes.","C03, D06"],
+["F30","Matchups",2,"Name two concepts that beat Cover 3 by attacking the flat defender.","Curl-flat, slant-flat, stick, snag, or flood. Any two.","C02, C05, C06, C07, C08, D05"],
+["F31","Matchups",3,"Best concept vs Cover 4 (Quarters)?","Mills (post-dig): the safety jumps the dig and the post goes behind him. Dagger also works.","C12, C09, D06"],
+["F32","Matchups",3,"Why is Dagger risky vs Tampa 2?","The Mike linebacker runs down the middle and carries the seam.","C09, D04"],
+["F33","Progressions",1,"Smash. Two-high. Corner squats on the hitch. Throw?","Corner route.","P01"],
+["F34","Progressions",1,"Smash. One-high. Corner bails deep. Throw?","Hitch.","P02"],
+["F35","Progressions",1,"Slant-Flat. Cover 3. Flat defender widens with the flat. Throw?","Slant.","P09"],
+["F36","Progressions",1,"Slant-Flat. Cover 3. Flat defender stays inside. Throw?","Flat.","P09"],
+["F37","Progressions",1,"Stick. Zone. Flat defender sits on the stick. Throw?","Flat.","P13"],
+["F38","Progressions",1,"Stick. Man. Throw?","Stick turning out away from the defender.","P14"],
+["F39","Progressions",2,"Curl-Flat. Cover 3. Flat defender takes the flat. Throw?","Curl.","P11"],
+["F40","Progressions",2,"Flood. Cover 3. Flat defender jumps the flat. Throw?","Sail.","P03"],
+["F41","Progressions",2,"Mesh. Motion shows man. Throw?","Crosser running away from his defender after the rub.","P07"],
+["F42","Progressions",2,"Mesh. Motion shows zone. Throw?","Crosser sitting in the hole between linebackers.","P08"],
+["F43","Progressions",2,"Drive. Zone. Hook linebacker jumps the shallow. Throw?","Dig.","P20"],
+["F44","Progressions",2,"Four Verticals. One-high, safety leans left. Throw?","Seam to the right, away from the safety.","P05"],
+["F45","Progressions",2,"Four Verticals. Two-high, safeties shallow (Cover 4). Throw?","Check down fast.","P06"],
+["F46","Progressions",3,"Mills. Cover 4. Safety jumps the dig. Throw?","Post.","P23"],
+["F47","Progressions",3,"Dagger. Cover 4. Safety carries the seam. Throw?","Dig behind the linebackers.","P18"],
+["F48","Progressions",3,"Y-Cross off play-action. Cover 3. Safety bites on the fake. Throw?","Post or go over the top.","P21"],
+["F49","Picture",1,"Read the shell. What coverage is this most likely?","Cover 0. No safety deep and every receiver covered tight: a blitz is coming. Ball out fast.","D01"],
+["F50","Picture",1,"Read the shell. What coverage is this most likely?","Cover 1. One safety deep and defenders pressed on every receiver: man.","D02"],
+["F51","Picture",1,"Read the shell. What coverage is this most likely?","Cover 2 or Tampa 2. Two deep safeties and squatting corners. You only find out which after the snap.","D03"],
+["F52","Picture",1,"Read the shell. What coverage is this most likely?","Cover 3. One deep safety, corners off, a safety rotated down.","D05"],
+["F53","Picture",2,"Read the shell. What coverage is this most likely?","Cover 4 (Quarters). Two safeties at about 9 yards, corners off.","D06"],
+["F54","Picture",3,"Read the shell. What coverage is this most likely?","Cover 6. Two-high, but one corner squats and the other plays off.","D07"],
+["F55","Picture",1,"Name the concept.","Smash: hitch outside, corner route inside.","C01"],
+["F56","Picture",2,"Name the concept.","Flood: go, sail, and flat to one side. Three levels.","C02"],
+["F57","Picture",2,"Name the concept.","Four Verticals: four receivers going deep.","C03"],
+["F58","Picture",2,"Name the concept.","Mesh: two shallow crossers meeting in the middle.","C04"],
+["F59","Picture",1,"Name the concept.","Slant-Flat: slant outside, flat inside.","C05"],
+["F60","Picture",1,"Name the concept.","Curl-Flat: curl outside, flat inside.","C06"],
+["F61","Picture",1,"Name the concept.","Stick: stick at 5-6 yards, a flat, and a fade.","C07"],
+["F62","Picture",2,"Name the concept.","Snag: snag, corner, and flat. The triangle.","C08"],
+["F63","Picture",3,"Name the concept.","Dagger: the seam clears the middle and the dig comes in behind it.","C09"],
+["F64","Picture",2,"Name the concept.","Drive: a shallow cross under a dig.","C10"],
+["F65","Picture",3,"Name the concept.","Y-Cross: a deep crosser with a post clearing over it.","C11"],
+["F66","Picture",3,"Name the concept.","Mills: a post over a dig.","C12"],
+["F67","Disguise",1,"Defenses disguise what they're doing. How do you beat it?","Use the pre-snap look to make a guess, then confirm after the snap: watch the safeties' first steps and count who actually rushes.",""],
+["F68","Disguise",1,"Before the snap: what does this look like, and what will you watch at the snap?","It looked like an all-out blitz, and it was: Cover 0. Ball out now: hot route, quick slant, or the receiver away from the pressure. Another card shows this same look with a different ending.","Z4"],
+["F69","Disguise",2,"Before the snap: what does this look like, and what will you watch at the snap?","Same blitz look, but they faked it and seven dropped into Cover 3. Don't throw hot into a dropping linebacker. You have time: run your normal read.","Z3"],
+["F70","Disguise",2,"Before the snap: what does this look like, and what will you watch at the snap?","It looked two-high, but one safety spun to the middle and the other dropped to the flat: Cover 3. Confirm the safeties after the snap, then throw your Cover 3 beater.","Z1"],
+["F71","Disguise",2,"Before the snap: what does this look like, and what will you watch at the snap?","It looked one-high, but the safeties split into halves: Cover 2. The middle opens and so does the sideline hole behind the corner: smash or seams.","Z2"],
+["F72","Disguise",2,"Before the snap: what does this look like, and what will you watch at the snap?","Cover 1, but the nickel blitzed and the robber had to run to cover the slot. Quick throw to the slot side before the blitz gets home.","Z5"],
+["F73","Disguise",3,"Before the snap: what does this look like, and what will you watch at the snap?","Two-high look, then 5-man pressure: two blitzers came, the end dropped, 3 deep and 3 under. Throw hot where the blitzers left, or seams against three deep. Watch the end dropping under quick throws.","Z6"]
+];
+
+const NAMES = {
+  C01:"Smash", C02:"Flood", C03:"Four Verticals", C04:"Mesh", C05:"Slant-Flat", C06:"Curl-Flat",
+  C07:"Stick", C08:"Snag", C09:"Dagger", C10:"Drive", C11:"Y-Cross", C12:"Mills",
+  D01:"Cover 0", D02:"Cover 1", D03:"Cover 2", D04:"Tampa 2", D05:"Cover 3", D06:"Cover 4", D07:"Cover 6",
+  Z1:"Rotation to Cover 3", Z2:"Rotation to Cover 2", Z3:"Fake blitz", Z4:"Real blitz", Z5:"Cover 1 nickel blitz", Z6:"Fire zone"
+};
+
+// Progression rows: label, key defender, read 1, read 2, read 3
+const PROG = {
+  P01:["Smash vs 2-high","Cornerback","Corner route if the corner squats","Hitch if the corner sinks","Back checking down"],
+  P02:["Smash vs 1-high","Cornerback","Hitch (corner usually bails)","Corner route only if the corner squats","Back checking down"],
+  P03:["Flood vs Cover 3","Flat defender","Sail if he jumps the flat","Flat if he drops under the sail","Go only if the corner sits"],
+  P05:["Four Verticals vs 1-high","Free safety","Seam away from the safety","Outside go if the corner is beat","Back checking down"],
+  P06:["Four Verticals vs 2-high","Both safeties","Seam splitting the safeties (Cover 2)","Opposite seam","Check down fast vs Cover 4"],
+  P07:["Mesh vs man","Defenders on the crossers","Crosser running away after the rub","Other crosser","Corner/wheel or back"],
+  P08:["Mesh vs zone","Underneath linebackers","Crosser sitting in the hole","Corner route vs a squatting corner","Back checking down"],
+  P09:["Slant-Flat vs Cover 3","Flat defender","Slant if he widens","Flat if he stays inside","Hot route vs blitz"],
+  P11:["Curl-Flat vs Cover 3","Flat defender","Curl if he takes the flat","Flat if he drops","Back checking down"],
+  P13:["Stick vs zone","Flat defender","Flat if he sits on the stick","Stick if he widens","Fade if the corner squats"],
+  P14:["Stick vs man","Defender on the stick","Stick turning out","Flat","Fade vs press"],
+  P18:["Dagger vs Cover 4","Safety on that side","Dig if the safety carries the seam","Seam if the safety jumps the dig","Back checking down"],
+  P20:["Drive vs zone","Hook linebacker","Dig if he jumps the shallow","Shallow if he drops","Back checking down"],
+  P21:["Y-Cross vs Cover 3","Free safety, far corner","Post or go if the safety bites","Crosser in front of the corner","Back checking down"],
+  P23:["Mills vs Cover 4","Safety on that side","Post if he jumps the dig","Dig if he stays deep","Back checking down"]
+};
+
+/* ---------- Diagram data ----------
+   x: 0 (left sideline) to 100 (right sideline). Depth in yards: 0 = line of scrimmage, positive = downfield. */
+const FORM = {
+  "2x2": { X:[8,0], H:[28,-0.8], Y:[72,-0.8], Z:[92,0], Q:[50,-5], R:[56,-5] },
+  "3x1": { X:[8,0], Y:[70,-0.8], H:[80,-0.8], Z:[92,0], Q:[50,-5], R:[56,-5] }
+};
+const CONCEPTS = {
+  C01:{ f:"2x2", r:{ X:[[8,6],[11,5]], H:[[28,8],[12,13]], Y:[[72,8],[88,13]], Z:[[92,6],[89,5]], R:[[63,-3]] } },
+  C02:{ f:"3x1", r:{ Z:[[93,23]], H:[[80,10],[95,13]], Y:[[71,2],[95,3]], X:[[8,10],[32,12]], R:[[44,-3]] } },
+  C03:{ f:"2x2", r:{ X:[[10,23]], H:[[30,8],[33,23]], Y:[[70,8],[67,23]], Z:[[90,23]], R:[[62,-2]] } },
+  C04:{ f:"2x2", r:{ H:[[34,2.5],[78,3]], Y:[[66,1.2],[22,1.8]], X:[[8,11],[11,10]], Z:[[92,10],[97,15]], R:[[68,-3],[84,0]] } },
+  C05:{ f:"2x2", r:{ X:[[8,2],[20,7]], H:[[27,2],[4,3]], Y:[[73,2],[96,3]], Z:[[92,2],[80,7]], R:[[62,-3]] } },
+  C06:{ f:"2x2", r:{ X:[[8,12],[11,10.5]], H:[[27,2],[4,3]], Y:[[73,2],[96,3]], Z:[[92,12],[89,10.5]], R:[[62,-3]] } },
+  C07:{ f:"3x1", r:{ Z:[[94,23]], H:[[83,2],[98,3]], Y:[[70,6],[73,6]], X:[[8,2],[20,7]], R:[[44,-3]] } },
+  C08:{ f:"3x1", r:{ Z:[[92,6],[86,5]], H:[[80,8],[95,14]], Y:[[72,2],[96,3]], X:[[10,23]], R:[[44,-3]] } },
+  C09:{ f:"2x2", r:{ Y:[[72,9],[72,23]], Z:[[92,15],[58,16]], X:[[8,12],[11,10.5]], H:[[30,5],[33,5]], R:[[62,-3]] } },
+  C10:{ f:"2x2", r:{ H:[[34,2.5],[80,3]], Y:[[72,11],[40,12]], Z:[[90,23]], X:[[10,23]], R:[[62,-3]] } },
+  C11:{ f:"2x2", r:{ Y:[[66,8],[14,17]], X:[[8,12],[30,22]], Z:[[90,23]], H:[[30,5],[33,5]], R:[[60,-3],[80,0]] } },
+  C12:{ f:"2x2", r:{ Z:[[92,12],[72,22]], Y:[[72,12],[48,13]], X:[[10,23]], H:[[30,5],[33,5]], R:[[62,-3]] } }
+};
+// Defenders: id, label, x, depth. "man" = receiver he covers (x follows the receiver). "blitz" = rushes the QB.
+// Zones: [owner, x1, x2, depth1, depth2, deep?]
+const COVERAGES = {
+  D01:{ d:[["CBL","C",0,1,"X"],["CBR","C",0,1,"Z"],["N","N",0,2,"H"],["B","B",0,2,"Y"],["SR","S",0,4,"R"],["W","W",42,3,null,1],["M","M",58,3,null,1]], z:[], note:"NO DEEP SAFETY" },
+  D02:{ d:[["CBL","C",0,1,"X"],["CBR","C",0,1,"Z"],["N","N",0,2,"H"],["B","B",0,2,"Y"],["M","M",0,4,"R"],["F","F",50,14],["W","W",46,8]],
+        z:[["F",28,72,13,25,1],["W",38,62,6,12]], note:"MAN + FREE SAFETY" },
+  D03:{ d:[["CBL","C",8,2],["CBR","C",92,2],["SL","S",28,13],["SR","S",72,13],["N","N",30,5],["M","M",50,4],["B","B",70,5]],
+        z:[["SL",0,50,13,25,1],["SR",50,100,13,25,1],["CBL",0,20,0,8],["N",20,40,4,11],["M",40,60,4,11],["B",60,80,4,11],["CBR",80,100,0,8]] },
+  D04:{ d:[["CBL","C",8,2],["CBR","C",92,2],["SL","S",28,13],["SR","S",72,13],["N","N",30,5],["M","M",50,4],["B","B",70,5]],
+        z:[["SL",0,50,14,25,1],["SR",50,100,14,25,1],["M",40,60,9,20,1],["CBL",0,20,0,8],["N",20,45,4,11],["B",55,80,4,11],["CBR",80,100,0,8]], note:"MIKE RUNS TO THE DEEP MIDDLE" },
+  D05:{ d:[["CBL","C",8,7],["CBR","C",92,7],["F","F",50,13],["SR","S",76,6],["N","N",28,5],["W","W",42,4],["M","M",58,4]],
+        z:[["CBL",0,33,13,25,1],["F",33,67,13,25,1],["CBR",67,100,13,25,1],["N",4,28,3,11],["W",30,50,4,11],["M",50,70,4,11],["SR",72,96,3,11]] },
+  D06:{ d:[["CBL","C",8,7],["CBR","C",92,7],["SL","S",30,9],["SR","S",70,9],["N","N",24,4],["M","M",50,4],["B","B",76,4]],
+        z:[["CBL",0,25,12,25,1],["SL",25,50,12,25,1],["SR",50,75,12,25,1],["CBR",75,100,12,25,1],["N",8,36,3,10],["M",36,64,3,10],["B",64,92,3,10]] },
+  D07:{ d:[["CBL","C",8,7],["CBR","C",92,2],["SL","S",30,9],["SR","S",72,13],["N","N",24,4],["M","M",50,4],["B","B",70,4]],
+        z:[["CBL",0,25,12,25,1],["SL",25,50,12,25,1],["SR",50,100,13,25,1],["N",6,36,3,10],["M",36,60,3,10],["B",60,80,4,11],["CBR",80,100,0,8]], note:"QUARTERS LEFT · COVER 2 RIGHT" }
+};
+// Progression diagrams: concept, coverage, key defender ids, read order by receiver
+const PROGD = {
+  P01:{ c:"C01", d:"D03", k:["CBR"], r:{ Y:1, Z:2, R:3 } },
+  P02:{ c:"C01", d:"D05", k:["CBR"], r:{ Z:1, Y:2, R:3 } },
+  P03:{ c:"C02", d:"D05", k:["SR"], r:{ H:1, Y:2, Z:3 } },
+  P05:{ c:"C03", d:"D05", k:["F"], r:{ H:1, X:2, R:3 } },
+  P06:{ c:"C03", d:"D03", k:["SL","SR"], r:{ H:1, Y:2, R:3 } },
+  P07:{ c:"C04", d:"D02", k:["N","B"], r:{ H:1, Y:2, R:3 } },
+  P08:{ c:"C04", d:"D05", k:["W","M"], r:{ H:1, Z:2, R:3 } },
+  P09:{ c:"C05", d:"D05", k:["SR"], r:{ Z:1, Y:2 } },
+  P11:{ c:"C06", d:"D05", k:["SR"], r:{ Z:1, Y:2, R:3 } },
+  P13:{ c:"C07", d:"D05", k:["SR"], r:{ H:1, Y:2, Z:3 } },
+  P14:{ c:"C07", d:"D02", k:["B"], r:{ Y:1, H:2, Z:3 } },
+  P18:{ c:"C09", d:"D06", k:["SR"], r:{ Z:1, Y:2, R:3 } },
+  P20:{ c:"C10", d:"D05", k:["M"], r:{ Y:1, H:2, R:3 } },
+  P21:{ c:"C11", d:"D05", k:["F","CBL"], r:{ X:1, Y:2, R:3 } },
+  P23:{ c:"C12", d:"D06", k:["SR"], r:{ Z:1, Y:2, R:3 } }
+};
+
+// Disguises: pre-snap alignment, then what happens at the snap (moves, man, blitz, zones)
+const DISGUISE = {
+  Z1:{ pre:[["CBL","C",8,7],["CBR","C",92,7],["SL","S",30,12],["SR","S",70,12],["N","N",28,5],["W","W",42,4],["M","M",58,4]],
+        mv:{ SL:[50,14], SR:[76,6] },
+        z:[["CBL",0,33,13,25,1],["SL",33,67,13,25,1],["CBR",67,100,13,25,1],["N",4,28,3,11],["W",30,50,4,11],["M",50,70,4,11],["SR",72,96,3,11]],
+        k:["SL","SR"], note:"2-HIGH LOOK, THEN COVER 3" },
+  Z2:{ pre:[["CBL","C",8,3],["CBR","C",92,3],["F","F",50,13],["SR","S",70,8],["N","N",30,5],["M","M",50,4],["W","W",64,4]],
+        mv:{ F:[28,14], SR:[72,14] },
+        z:[["F",0,50,13,25,1],["SR",50,100,13,25,1],["CBL",0,20,0,8],["N",20,40,4,11],["M",40,58,4,11],["W",58,80,4,11],["CBR",80,100,0,8]],
+        k:["F","SR"], note:"1-HIGH LOOK, THEN COVER 2" },
+  Z3:{ pre:[["CBL","C",8,3],["CBR","C",92,3],["N","N",28,3],["B","B",72,3],["W","W",46,1.3],["M","M",54,1.3],["S","S",50,8]],
+        mv:{ CBL:[12,15], CBR:[88,15], S:[50,15], W:[40,8], M:[60,8], N:[20,7], B:[80,7] },
+        z:[["CBL",0,33,13,25,1],["S",33,67,13,25,1],["CBR",67,100,13,25,1],["N",4,28,3,11],["W",30,50,4,11],["M",50,70,4,11],["B",72,96,3,11]],
+        k:["W","M"], note:"BLITZ LOOK, THEN 7 DROP INTO COVER 3" },
+  Z4:{ pre:[["CBL","C",8,3],["CBR","C",92,3],["N","N",28,3],["B","B",72,3],["W","W",46,1.3],["M","M",54,1.3],["S","S",50,8]],
+        man:{ CBL:"X", CBR:"Z", N:"H", B:"Y", S:"R" }, blitz:["W","M"], z:[],
+        k:["W","M"], note:"SAME LOOK, REAL BLITZ: COVER 0" },
+  Z5:{ pre:[["CBL","C",8,1.5],["CBR","C",92,1.5],["N","N",35,3],["B","B",70,2],["M","M",56,4],["F","F",50,14],["W","W",46,7]],
+        man:{ CBL:"X", CBR:"Z", B:"Y", M:"R", W:"H" }, blitz:["N"], z:[["F",28,72,13,25,1]],
+        k:["N","W"], note:"COVER 1 WITH A NICKEL BLITZ" },
+  Z6:{ pre:[["CBL","C",8,7],["CBR","C",92,7],["SL","S",30,11],["SR","S",70,11],["N","N",26,4],["W","W",44,2.5],["M","M",56,3],["E","E",64,0.6]],
+        mv:{ SR:[50,14], SL:[22,7], M:[50,8], E:[74,6] }, blitz:["N","W"],
+        z:[["CBL",0,33,13,25,1],["SR",33,67,13,25,1],["CBR",67,100,13,25,1],["SL",4,36,3,11],["M",36,64,4,11],["E",64,96,3,11]],
+        k:["N","W","E"], note:"5 RUSH, 3 DEEP, 3 UNDER" }
+};
+
+const yy = yd => 50 - yd * 1.8;
+let svgN = 0;
+
+function drawDiagram(spec) {
+  const id = "d" + (++svgN);
+  const concept = spec.concept ? CONCEPTS[spec.concept] : null;
+  const form = FORM[concept ? concept.f : "2x2"];
+  const cov = spec.cov ? COVERAGES[spec.cov] : null;
+  const keys = spec.keys || [];
+  const out = [];
+  out.push(`<svg class="dg" viewBox="0 0 100 64" role="img" aria-label="${spec.label || "Play diagram"}">`);
+  out.push(`<defs><marker id="${id}a" viewBox="0 0 6 6" refX="4.5" refY="3" markerWidth="3.6" markerHeight="3.6" orient="auto-start-reverse"><path class="ah" d="M0,0 L6,3 L0,6 z"/></marker>`);
+  out.push(`<marker id="${id}b" viewBox="0 0 6 6" refX="4.5" refY="3" markerWidth="3.6" markerHeight="3.6" orient="auto-start-reverse"><path class="ahd" d="M0,0 L6,3 L0,6 z"/></marker></defs>`);
+  for (let yd = 5; yd <= 25; yd += 5) out.push(`<line class="yl" x1="0" x2="100" y1="${yy(yd)}" y2="${yy(yd)}"/>`);
+  for (let yd = 1; yd <= 25; yd++) { if (yd % 5) { out.push(`<line class="hash" x1="38" x2="39.5" y1="${yy(yd)}" y2="${yy(yd)}"/><line class="hash" x1="60.5" x2="62" y1="${yy(yd)}" y2="${yy(yd)}"/>`); } }
+  out.push(`<line class="los" x1="0" x2="100" y1="${yy(0)}" y2="${yy(0)}"/>`);
+
+  if (spec.dz) {
+    const dz = DISGUISE[spec.dz], post = spec.phase === "post", man = dz.man || {}, blitzers = dz.blitz || [], mv = dz.mv || {};
+    const pre = {}, pos = {};
+    dz.pre.forEach(([did, lab, x, dep]) => {
+      pre[did] = [x, dep];
+      if (man[did]) { const rx = form[man[did]][0]; pos[did] = [rx + (rx < 50 ? 1.8 : -1.8), Math.max(dep, 3)]; }
+      else if (mv[did]) pos[did] = mv[did];
+      else pos[did] = [x, dep];
+    });
+    if (post) dz.z.forEach(([own, x1, x2, d1, d2, deep]) => {
+      out.push(`<rect class="zone${deep ? " deep" : ""}" x="${x1 + 0.6}" y="${yy(d2)}" width="${x2 - x1 - 1.2}" height="${yy(d1) - yy(d2)}" rx="2.5"/>`);
+    });
+    [42, 46, 50, 54, 58].forEach(x => out.push(`<rect class="ol" x="${x - 1.3}" y="${yy(-0.4)}" width="2.6" height="2" rx="0.5"/>`));
+    Object.entries(form).forEach(([rk, [x, d]]) => {
+      out.push(`<circle class="rc" cx="${x}" cy="${yy(d)}" r="2.2"/><text class="rt" x="${x}" y="${yy(d) + 0.1}">${rk === "R" ? "RB" : rk}</text>`);
+    });
+    if (post) {
+      dz.pre.forEach(([did, lab]) => {
+        const [px, pd] = pre[did], [qx, qd] = pos[did];
+        if (blitzers.includes(did)) {
+          out.push(`<line class="blitz" x1="${px}" y1="${yy(pd) + 1.6}" x2="${px + (50 - px) * 0.7}" y2="${yy(-2.6)}" marker-end="url(#${id}b)"/>`);
+          return;
+        }
+        if (Math.hypot(qx - px, yy(qd) - yy(pd)) > 3) {
+          const ex = px + (qx - px) * 0.82, ey = yy(pd) + (yy(qd) - yy(pd)) * 0.82;
+          out.push(`<text class="ghost" x="${px}" y="${yy(pd)}">${lab}</text>`);
+          out.push(`<line class="move" x1="${px}" y1="${yy(pd)}" x2="${ex}" y2="${ey}" marker-end="url(#${id}b)"/>`);
+        }
+        if (man[did]) out.push(`<line class="man" x1="${qx}" y1="${yy(qd)}" x2="${form[man[did]][0]}" y2="${yy(form[man[did]][1])}"/>`);
+      });
+    }
+    dz.pre.forEach(([did, lab]) => {
+      const [dx, dd] = post && !blitzers.includes(did) ? pos[did] : pre[did];
+      if (keys.includes(did)) out.push(`<circle class="keyring" cx="${dx}" cy="${yy(dd)}" r="2.6"/>`);
+      out.push(`<text class="def" x="${dx}" y="${yy(dd)}">${lab}</text>`);
+    });
+    if (post && dz.note) out.push(`<text class="note" x="2" y="62">${dz.note}</text>`);
+    out.push(`</svg>`);
+    return out.join("");
+  }
+
+  // Defense: zones first so everything else draws over them
+  const defPos = {};
+  if (cov) {
+    cov.d.forEach(([did, lab, x, dep, man]) => {
+      if (man && form[man]) { const rx = form[man][0]; defPos[did] = [rx + (rx < 50 ? 1.8 : -1.8), Math.max(dep, 3)]; }
+      else defPos[did] = [x, dep];
+    });
+    if (!spec.shell) {
+      cov.z.forEach(([own, x1, x2, d1, d2, deep]) => {
+        const top = yy(d2), h = yy(d1) - yy(d2);
+        out.push(`<rect class="zone${deep ? " deep" : ""}" x="${x1 + 0.6}" y="${top}" width="${x2 - x1 - 1.2}" height="${h}" rx="2.5"/>`);
+      });
+    }
+  }
+
+  // Offensive line and players
+  [42, 46, 50, 54, 58].forEach(x => out.push(`<rect class="ol" x="${x - 1.3}" y="${yy(-0.4)}" width="2.6" height="2" rx="0.5"/>`));
+  if (concept) {
+    Object.entries(concept.r).forEach(([rk, pts]) => {
+      const s = form[rk]; if (!s) return;
+      const all = [s, ...pts].map(([x, d]) => `${x},${yy(d)}`).join(" ");
+      out.push(`<polyline class="route" points="${all}" marker-end="url(#${id}a)"/>`);
+    });
+  }
+  Object.entries(form).forEach(([rk, [x, d]]) => {
+    out.push(`<circle class="rc" cx="${x}" cy="${yy(d)}" r="2.2"/><text class="rt" x="${x}" y="${yy(d) + 0.1}">${rk === "R" ? "RB" : rk}</text>`);
+  });
+
+  if (cov) {
+    if (!spec.shell) {
+      cov.d.forEach(([did, lab, x, dep, man, blitz]) => {
+        const [dx, dd] = defPos[did];
+        if (man && form[man]) out.push(`<line class="man" x1="${dx}" y1="${yy(dd)}" x2="${form[man][0]}" y2="${yy(form[man][1])}"/>`);
+        if (blitz) out.push(`<line class="blitz" x1="${dx}" y1="${yy(dd) + 1.6}" x2="${dx + (50 - dx) * 0.7}" y2="${yy(-2.6)}" marker-end="url(#${id}b)"/>`);
+      });
+    }
+    cov.d.forEach(([did, lab]) => {
+      const [dx, dd] = defPos[did];
+      if (keys.includes(did)) out.push(`<circle class="keyring" cx="${dx}" cy="${yy(dd)}" r="2.6"/>`);
+      out.push(`<text class="def" x="${dx}" y="${yy(dd)}">${lab}</text>`);
+    });
+    if (cov.note && !spec.shell) out.push(`<text class="note" x="2" y="62">${cov.note}</text>`);
+  }
+
+  // Read order badges at the end of each numbered route
+  if (concept && spec.reads) {
+    Object.entries(spec.reads).forEach(([rk, n]) => {
+      const pts = concept.r[rk]; if (!pts) return;
+      const [ex, ed] = pts[pts.length - 1];
+      const bx = Math.min(97, Math.max(3, ex + (ex > 50 ? -3.2 : 3.2))), by = Math.max(3, yy(ed) - 2.4);
+      out.push(`<circle class="num" cx="${bx}" cy="${by}" r="1.9"/><text class="numt" x="${bx}" y="${by + 0.1}">${n}</text>`);
+    });
+  }
+  out.push(`</svg>`);
+  return out.join("");
+}
+
+function diagramSpec(card, isFlipped) {
+  const c = card.links.find(l => /^C/.test(l)), d = card.links.find(l => /^D/.test(l)), p = card.links.find(l => PROGD[l]);
+  switch (card.deck) {
+    case "Progressions":
+      if (!p) return null;
+      return { concept: PROGD[p].c, cov: PROGD[p].d, keys: PROGD[p].k, reads: isFlipped ? PROGD[p].r : null, label: `${NAMES[PROGD[p].c]} against ${NAMES[PROGD[p].d]}` };
+    case "Picture":
+      if (d) return isFlipped ? { cov: d, label: NAMES[d] } : { cov: d, shell: true, label: "Pre-snap defensive alignment" };
+      if (c) return { concept: c, label: isFlipped ? NAMES[c] : "Route concept" };
+      return null;
+    case "Disguise": {
+      const z = card.links.find(l => DISGUISE[l]);
+      if (!z) return null;
+      return { dz: z, phase: isFlipped ? "post" : "pre", keys: isFlipped ? DISGUISE[z].k : [], label: isFlipped ? `After the snap: ${NAMES[z]}` : "Pre-snap defensive alignment" };
+    }
+    case "Concepts": return isFlipped && c ? { concept: c, label: NAMES[c] } : null;
+    case "Coverages": return isFlipped && d ? { cov: d, label: NAMES[d] } : null;
+    case "Matchups": return isFlipped && c && d ? { concept: c, cov: d, label: `${NAMES[c]} against ${NAMES[d]}` } : null;
+    case "Basics": return isFlipped && card.id === "F04" ? { cov: "D01", label: "Cover 0" } : null;
+  }
+  return null;
+}
+
+function legendFor(spec) {
+  const parts = ["Circles = offense"];
+  if (spec.dz) {
+    parts.push("letters = defense");
+    if (spec.phase === "post") parts.push("faded letters = where they lined up", "dashed arrows = where they went", "solid red arrows = blitz", "yellow ring = who to watch");
+    return parts.join(" · ");
+  }
+  if (spec.cov) parts.push("letters = defense");
+  if (spec.cov && !spec.shell) parts.push("shaded = zones");
+  if (spec.keys && spec.keys.length) parts.push("yellow ring = key defender");
+  if (spec.reads) parts.push("numbers = read order");
+  return parts.join(" · ");
+}
+
+const DECKS = ["Basics","Coverages","Concepts","Matchups","Progressions","Picture","Disguise"];
+const cards = CARDS.map(([id,deck,level,front,back,links]) => ({id,deck,level,front,back,links: links ? links.split(", ") : []}));
+
+function load(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; } }
+function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch (e) {} }
+
+let prefs = load("qbcards.prefs2", { decks: ["Picture"], levels: [1], rapid: false });
+let stats = load("qbcards.stats", {});
+let queue = [], index = 0, flipped = false, firstGot = new Set(), firstMissed = [], startCount = 0;
+
+const $ = id => document.getElementById(id);
+
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+function pool() { return cards.filter(c => prefs.decks.includes(c.deck) && prefs.levels.includes(c.level)); }
+
+function renderFilters() {
+  const levelPool = cards.filter(c => prefs.levels.includes(c.level));
+  $("decks").innerHTML = DECKS.map(d => {
+    const n = levelPool.filter(c => c.deck === d).length;
+    return `<button class="chip" type="button" data-deck="${d}" aria-pressed="${prefs.decks.includes(d)}">${d}<span class="n">${n}</span></button>`;
+  }).join("");
+  $("levels").innerHTML = [1,2,3].map(l => `<button class="chip" type="button" data-level="${l}" aria-pressed="${prefs.levels.includes(l)}">Level ${l}</button>`).join("");
+  $("rapid").setAttribute("aria-pressed", String(prefs.rapid));
+}
+
+function start(fromList) {
+  const base = fromList || pool();
+  queue = shuffle(base.slice()).map(c => ({ card: c, retry: false }));
+  index = 0; flipped = false; firstGot = new Set(); firstMissed = []; startCount = queue.length;
+  $("summary").hidden = true;
+  render();
+}
+
+function dots(level) { return [1,2,3].map(i => `<i class="${i <= level ? "on" : ""}"></i>`).join(""); }
+
+function readBlock(links) {
+  const p = links.find(l => PROG[l]);
+  if (!p) return "";
+  const [label, key, r1, r2, r3] = PROG[p];
+  return `<div class="read"><b>Full read: ${label}</b>Key defender: ${key}<ol><li>${r1}</li><li>${r2}</li><li>${r3}</li></ol></div>`;
+}
+
+function runTimer() {
+  const t = $("timer");
+  if (!prefs.rapid || flipped) { t.hidden = true; t.classList.remove("run","out"); return; }
+  t.hidden = false; t.classList.remove("run","out"); void t.offsetWidth; t.classList.add("run");
+  t.querySelector(".fill").onanimationend = () => t.classList.add("out");
+}
+
+function render() {
+  const total = queue.length;
+  const card = $("card"), actions = $("actions");
+  $("empty").hidden = startCount !== 0;
+  if (startCount === 0) { card.hidden = true; actions.innerHTML = ""; $("count").textContent = "0/0"; $("done").style.width = "0"; return; }
+  if (index >= total) { showSummary(); return; }
+  card.hidden = false;
+  const item = queue[index], c = item.card;
+  $("count").textContent = `${Math.min(index + 1, total)}/${total}`;
+  $("done").style.width = `${(index / total) * 100}%`;
+  $("cardId").textContent = c.id;
+  $("cardDeck").textContent = c.deck + (item.retry ? " · retry" : "");
+  $("cardDots").innerHTML = dots(c.level);
+  $("cardDots").setAttribute("aria-label", `Level ${c.level}`);
+  const spec = diagramSpec(c, flipped);
+  const dg = $("diagram");
+  if (spec) { dg.innerHTML = drawDiagram(spec) + `<div class="legend">${legendFor(spec)}</div>`; dg.hidden = false; }
+  else { dg.innerHTML = ""; dg.hidden = true; }
+  $("front").textContent = c.front;
+  $("answer").textContent = c.back;
+  $("read").innerHTML = readBlock(c.links);
+  $("links").innerHTML = c.links.filter(l => NAMES[l]).map(l => `<span class="tag">${NAMES[l]}</span>`).join("");
+  $("back").hidden = !flipped;
+  $("hint").hidden = flipped;
+  const s = stats[c.id];
+  $("stat").textContent = s ? `Seen ${s.g + s.m} times · missed ${s.m}` : "New card";
+  actions.innerHTML = flipped
+    ? `<button class="btn miss" type="button" id="missBtn">Missed it</button><button class="btn got" type="button" id="gotBtn">Got it</button>`
+    : `<button class="btn primary full" type="button" id="flipBtn">Show answer</button>`;
+  if (flipped) { $("missBtn").onclick = () => mark(false); $("gotBtn").onclick = () => mark(true); }
+  else { $("flipBtn").onclick = flip; }
+  runTimer();
+}
+
+function flip() { if (index >= queue.length || startCount === 0) return; flipped = !flipped; render(); }
+
+function mark(got) {
+  const item = queue[index], id = item.card.id;
+  stats[id] = stats[id] || { g: 0, m: 0 };
+  if (got) stats[id].g++; else stats[id].m++;
+  save("qbcards.stats", stats);
+  if (!item.retry) { if (got) firstGot.add(id); else firstMissed.push(item.card); }
+  if (!got && !item.retry) queue.push({ card: item.card, retry: true });
+  index++; flipped = false; render();
+}
+
+function esc(s) { return s.replace(/[&<>"]/g, ch => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[ch])); }
+
+function showSummary() {
+  $("card").hidden = true; $("timer").hidden = true;
+  $("count").textContent = `${queue.length}/${queue.length}`; $("done").style.width = "100%";
+  $("actions").innerHTML = "";
+  const sum = $("summary"); sum.hidden = false;
+  const missedList = firstMissed.length
+    ? `<h2>Review these</h2><ul class="missed">${firstMissed.map(c => `<li><div class="q">${esc(c.id + " " + c.front)}</div><div class="a">${esc(c.back)}</div></li>`).join("")}</ul>`
+    : `<h2>Clean sheet. Every card on the first try.</h2>`;
+  sum.innerHTML = `
+    <div class="label">First try</div>
+    <p class="score">${firstGot.size}/${startCount}</p>
+    ${missedList}
+    <label class="label" for="note">Anything confusing? Tell your dad.</label>
+    <textarea id="note" placeholder="Example: I mix up Cover 2 and Tampa 2."></textarea>
+    <div class="actions">
+      <button class="btn primary full" type="button" id="copyBtn">Copy results to text Dad</button>
+      ${firstMissed.length ? `<button class="btn ghost" type="button" id="againBtn">Run missed cards</button>` : ""}
+      <button class="btn ghost ${firstMissed.length ? "" : "full"}" type="button" id="newBtn">New session</button>
+    </div>
+    <textarea id="copyFallback" readonly hidden aria-label="Results text to copy"></textarea>`;
+  $("copyBtn").onclick = copyResults;
+  if ($("againBtn")) $("againBtn").onclick = () => start(firstMissed.slice());
+  $("newBtn").onclick = () => start();
+}
+
+function copyResults() {
+  const d = new Date().toLocaleDateString();
+  const text = [
+    `QB Cards, ${d}`,
+    `Decks: ${prefs.decks.join(", ")} | Levels: ${prefs.levels.join(", ")}${prefs.rapid ? " | Rapid fire" : ""}`,
+    `First try: ${firstGot.size}/${startCount}`,
+    firstMissed.length ? `Missed: ${firstMissed.map(c => `${c.id} ${c.front}`).join(" / ")}` : "Missed: none",
+    `Note: ${($("note").value || "").trim() || "none"}`
+  ].join("\n");
+  const btn = $("copyBtn");
+  const fallback = () => { const f = $("copyFallback"); f.value = text; f.hidden = false; f.focus(); f.select(); btn.textContent = "Select the text below and copy it"; };
+  try {
+    navigator.clipboard.writeText(text).then(() => { btn.textContent = "Copied. Paste it in a text to Dad."; }).catch(fallback);
+  } catch (e) { fallback(); }
+}
+
+document.addEventListener("click", e => {
+  const d = e.target.closest("[data-deck]"), l = e.target.closest("[data-level]");
+  if (d) {
+    const v = d.dataset.deck;
+    prefs.decks = prefs.decks.includes(v) ? prefs.decks.filter(x => x !== v) : [...prefs.decks, v];
+    save("qbcards.prefs2", prefs); renderFilters(); start();
+  } else if (l) {
+    const v = Number(l.dataset.level);
+    prefs.levels = prefs.levels.includes(v) ? prefs.levels.filter(x => x !== v) : [...prefs.levels, v].sort();
+    save("qbcards.prefs2", prefs); renderFilters(); start();
+  }
+});
+$("rapid").onclick = () => { prefs.rapid = !prefs.rapid; save("qbcards.prefs2", prefs); renderFilters(); runTimer(); };
+$("restart").onclick = () => start();
+$("card").onclick = e => { if (!e.target.closest("button")) flip(); };
+document.addEventListener("keydown", e => {
+  if (e.target.tagName === "TEXTAREA") return;
+  if (e.key === " " || e.key === "Enter") { if (document.activeElement && document.activeElement.tagName === "BUTTON") return; e.preventDefault(); flip(); }
+  else if (flipped && e.key === "ArrowLeft") mark(false);
+  else if (flipped && e.key === "ArrowRight") mark(true);
+});
+
+renderFilters();
+start();
+</script>
+
+</body></html>
