@@ -712,7 +712,7 @@ document.addEventListener("keydown", e => {
 /* ---------- Feedback (shows up when FEEDBACK_URL is set) ---------- */
 // Shared feedback API (AWS API Gateway + Lambda), used by this app and the Coach Playbook.
 // Paste the full URL ending in /feedback. Empty = no feedback button.
-const FEEDBACK_URL = "";
+const FEEDBACK_URL = "https://y2bnztejk2.execute-api.us-east-2.amazonaws.com/feedback";
 const APP_ID = "iceman-qb-cards";
 if (FEEDBACK_URL) $("fbOpen").hidden = false;
 $("fbOpen").onclick = () => { $("fbPanel").hidden = false; $("fbMsg").textContent = ""; $("fbText").focus(); };
