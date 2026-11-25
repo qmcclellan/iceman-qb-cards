@@ -146,7 +146,12 @@ textarea {
   background: var(--surface); color: var(--ink); padding: 10px 12px; resize: vertical;
 }
 .empty { color: var(--muted); text-align: center; padding: 30px 10px; }
-footer { color: var(--muted); font-size: 0.82rem; }
+footer { color: var(--muted); font-size: 0.82rem; display: flex; flex-direction: column; gap: 10px; }
+footer .btn { font-size: 0.95rem; min-height: 44px; align-self: flex-start; }
+.fb { display: flex; flex-direction: column; gap: 10px; }
+.fb .row .btn { flex: 1; }
+.fbmsg { color: var(--muted); font-size: 0.9rem; min-height: 1.2em; }
+.btn:disabled { opacity: 0.5; cursor: default; }
 @media (prefers-reduced-motion: reduce) { .meter .done { transition: none; } }
 </style>
 
@@ -192,7 +197,18 @@ footer { color: var(--muted); font-size: 0.82rem; }
   <section class="summary" id="summary" hidden></section>
   <div class="empty" id="empty" hidden>No cards match. Pick at least one deck and one level.</div>
 
-  <footer>Built from the Football folder: concepts, coverages, matchup matrix and progressions. His coach's reads come first.</footer>
+  <section class="fb" id="fbPanel" hidden aria-label="Send feedback">
+    <label class="label" for="fbText">What's working, what isn't, what you want next</label>
+    <textarea id="fbText" maxlength="2000"></textarea>
+    <div class="row"><button class="btn primary" id="fbSend" type="button">Send</button><button class="btn ghost" id="fbCancel" type="button">Cancel</button></div>
+    <div class="fbmsg" id="fbMsg" role="status"></div>
+  </section>
+
+  <footer>
+    <span>Built from the Football folder: concepts, coverages, matchup matrix and progressions. His coach's reads come first.</span>
+    <!-- Feedback: set FEEDBACK_URL in the script to the shared AWS feedback API and this button shows up. -->
+    <button class="btn ghost" id="fbOpen" type="button" hidden>Send feedback</button>
+  </footer>
 </div>
 
 <script>
@@ -692,6 +708,29 @@ document.addEventListener("keydown", e => {
   else if (flipped && e.key === "ArrowLeft") mark(false);
   else if (flipped && e.key === "ArrowRight") mark(true);
 });
+
+/* ---------- Feedback (shows up when FEEDBACK_URL is set) ---------- */
+// Shared feedback API (AWS API Gateway + Lambda), used by this app and the Coach Playbook.
+// Paste the full URL ending in /feedback. Empty = no feedback button.
+const FEEDBACK_URL = "https://y2bnztejk2.execute-api.us-east-2.amazonaws.com/feedback";
+const APP_ID = "iceman-qb-cards";
+if (FEEDBACK_URL) $("fbOpen").hidden = false;
+$("fbOpen").onclick = () => { $("fbPanel").hidden = false; $("fbMsg").textContent = ""; $("fbText").focus(); };
+$("fbCancel").onclick = () => { $("fbPanel").hidden = true; };
+$("fbSend").onclick = async () => {
+  const msg = $("fbText").value.trim();
+  if (!msg) { $("fbMsg").textContent = "Write a note first."; return; }
+  const btn = $("fbSend"); btn.disabled = true; $("fbMsg").textContent = "Sending...";
+  const item = queue[index];
+  try {
+    const r = await fetch(FEEDBACK_URL, { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ app: APP_ID, message: msg.slice(0, 2000), screen: item ? item.card.id : "", sent: new Date().toISOString() }) });
+    if (!r.ok) throw new Error(r.status);
+    $("fbText").value = ""; $("fbMsg").textContent = "Thanks. Feedback sent.";
+    setTimeout(() => { $("fbPanel").hidden = true; }, 1500);
+  } catch (e) { $("fbMsg").textContent = "Couldn't send. Try again later."; }
+  finally { btn.disabled = false; }
+};
 
 renderFilters();
 start();
